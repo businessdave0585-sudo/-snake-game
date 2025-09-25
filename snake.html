@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeu Snake Simple</title>
+  <style>
+    body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; }
+    canvas { background: #111; border: 2px solid #fff; }
+  </style>
+</head>
+<body>
+  <div style="display:flex;justify-content:center;align-items:center;gap:20px;margin-top:20px;">
+    <button id="start-btn" style="padding:15px 40px;font-size:1.2em;background:#306998;color:#fff;border:none;border-radius:8px;cursor:pointer;">Démarrer le jeu</button>
+    <button id="mute-btn" style="padding:12px 25px;font-size:1em;background:#222;color:#fff;border:none;border-radius:8px;cursor:pointer;">🔊 Son</button>
+    <span id="highscore-label" style="font-size:1.1em;color:#306998;font-weight:bold;">Meilleur score : 0</span>
+  </div>
+  <div id="game-container" style="position: relative; width: 900px; height: 900px; margin: auto; opacity:0.5; pointer-events:none;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; left: -90px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; right: -90px; top: 50%; transform: translateY(-50%) scaleX(-1); width: 90px; height: 90px;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; top: -90px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; bottom: -90px; left: 50%; transform: translateX(-50%) scaleY(-1); width: 90px; height: 90px;">
+    <canvas id="game" width="900" height="900"></canvas>
+  </div>
+  <!-- Sons distincts et libres -->
+  <audio id="eat-sound" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b1b7b6e2.mp3"></audio> <!-- pop -->
+  <audio id="lose-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b7bfa.mp3"></audio> <!-- fail -->
+  <audio id="bg-sound" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b1b7b6e2.mp3" loop></audio> <!-- simple fond -->
+  <script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const grid = 30; // taille d'une case
+  let snake = [{x: 10 * grid, y: 15 * grid}];
+  let dx = grid, dy = 0;
+  let food = {x: 15 * grid, y: 15 * grid};
+  let score = 0;
+  let speed = 180; // vitesse de départ plus lente (ms)
+  let loopId;
+  // Sons
+  const eatSound = document.getElementById('eat-sound');
+  const loseSound = document.getElementById('lose-sound');
+  const bgSound = document.getElementById('bg-sound');
+  // Contrôle démarrage
+  const startBtn = document.getElementById('start-btn');
+  const muteBtn = document.getElementById('mute-btn');
+  const highscoreLabel = document.getElementById('highscore-label');
+  const gameContainer = document.getElementById('game-container');
+  let muted = false;
+  let highscore = localStorage.getItem('snake_highscore') ? parseInt(localStorage.getItem('snake_highscore')) : 0;
+  highscoreLabel.textContent = 'Meilleur score : ' + highscore;
+
+    function drawSnake() {
+      ctx.fillStyle = '#0f0';
+      snake.forEach(part => ctx.fillRect(part.x, part.y, grid, grid));
+    }
+
+    function drawFood() {
+      ctx.fillStyle = '#f00';
+      ctx.fillRect(food.x, food.y, grid, grid);
+    }
+
+    function moveSnake() {
+      const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        if (!muted && eatSound) { try { eatSound.currentTime = 0; eatSound.play(); } catch(e){} }
+        // Générer la nourriture dans la grille 30x30 (900/30 = 30)
+        food = {
+          x: Math.floor(Math.random() * 30) * grid,
+          y: Math.floor(Math.random() * 30) * grid
+        };
+        // Le snake grandit (on ne retire pas la queue)
+        // Augmenter la vitesse progressivement (ralentir l'intervalle)
+        if (speed > 60) {
+          speed -= 5;
+          clearInterval(loopId);
+          loopId = setInterval(gameLoop, speed);
+        }
+      } else {
+        snake.pop();
+      }
+    }
+
+    function checkCollision() {
+      const head = snake[0];
+      if (head.x < 0 || head.x >= 900 || head.y < 0 || head.y >= 900) return true;
+      for (let i = 1; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) return true;
+      }
+      return false;
+    }
+
+    function gameLoop() {
+      if (checkCollision()) {
+        // Son de perdant
+        if (!muted && loseSound) { try { loseSound.currentTime = 0; loseSound.play(); } catch(e){} }
+        // Highscore
+        if (score > highscore) {
+          highscore = score;
+          localStorage.setItem('snake_highscore', highscore);
+          highscoreLabel.textContent = 'Meilleur score : ' + highscore;
+        }
+        setTimeout(() => {
+          let again = confirm('Game Over! Score: ' + score + '\nVoulez-vous rejouer ? (OK = Rejouer, Annuler = Quitter)');
+          if (again) {
+            // Réinitialiser le jeu
+            snake = [{x: 10 * grid, y: 15 * grid}];
+            dx = grid; dy = 0;
+            food = {x: 15 * grid, y: 15 * grid};
+            score = 0;
+            speed = 180;
+            ctx.clearRect(0, 0, 900, 900);
+            clearInterval(loopId);
+            loopId = setInterval(gameLoop, speed);
+            if (!muted && bgSound) { try { bgSound.currentTime = 0; bgSound.play(); } catch(e){} }
+          } else {
+            if (bgSound) bgSound.pause();
+            window.close();
+          }
+        }, 100);
+        clearInterval(loopId);
+        return;
+      }
+      ctx.clearRect(0, 0, 900, 900);
+      drawFood();
+      moveSnake();
+      drawSnake();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -grid; }
+      else if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = grid; }
+      else if (e.key === 'ArrowLeft' && dx === 0) { dx = -grid; dy = 0; }
+      else if (e.key === 'ArrowRight' && dx === 0) { dx = grid; dy = 0; }
+    });
+
+    // Démarrage du jeu après interaction utilisateur
+    function startGame() {
+      gameContainer.style.opacity = 1;
+      gameContainer.style.pointerEvents = 'auto';
+      startBtn.style.display = 'none';
+      if (loopId) clearInterval(loopId);
+      loopId = setInterval(gameLoop, speed);
+      if (!muted && bgSound) { try { bgSound.currentTime = 0; bgSound.volume = 0.2; bgSound.play(); } catch(e){} }
+    }
+    startBtn.addEventListener('click', startGame);
+
+    // Mute/Unmute
+    muteBtn.addEventListener('click', function() {
+      muted = !muted;
+      if (muted) {
+        muteBtn.textContent = '🔇 Muet';
+        if (bgSound) bgSound.pause();
+      } else {
+        muteBtn.textContent = '🔊 Son';
+        if (startBtn.style.display === 'none' && bgSound) { try { bgSound.currentTime = 0; bgSound.play(); } catch(e){} }
+      }
+    });
+  </script>
+</body>
+</html>
