@@ -12,11 +12,42 @@
         gap: 20px;
         margin-top: 20px;
       }
+      .fire-frame {
+        position: relative;
+        display: inline-block;
+      }
+      .fire-inner {
+        position: absolute;
+        top: 10px; left: 10px; right: 10px; bottom: 10px;
+        pointer-events: none;
+        z-index: 2;
+        border-radius: 16px;
+        box-shadow:
+          0 0 32px 8px #ff9800cc,
+          0 0 64px 16px #ffb300cc,
+          0 0 0 0 #fff8;
+        animation: fire-inner-glow 1.1s infinite alternate;
+      }
       canvas {
         background: #111;
-        border: 6px solid #ff9800;
-        box-shadow: 0 0 24px #ff9800cc, 0 0 8px #fff8;
-        border-radius: 18px;
+        border: 14px solid #ff9800;
+        border-radius: 24px;
+        box-shadow:
+          0 0 64px 24px #ff9800cc,
+          0 0 120px 48px #ffb300cc,
+          0 0 0 0 #fff8;
+        animation: fire-glow 1.2s infinite alternate;
+        z-index: 1;
+      }
+      @keyframes fire-inner-glow {
+        0% { box-shadow: 0 0 32px 8px #ff9800cc, 0 0 64px 16px #ffb300cc, 0 0 0 0 #fff8; }
+        50% { box-shadow: 0 0 48px 16px #ffb300ee, 0 0 80px 24px #ff9800cc, 0 0 0 0 #fff8; }
+        100% { box-shadow: 0 0 32px 8px #ff9800cc, 0 0 64px 16px #ffb300cc, 0 0 0 0 #fff8; }
+      }
+      @keyframes fire-glow {
+        0% { box-shadow: 0 0 64px 24px #ff9800cc, 0 0 120px 48px #ffb300cc, 0 0 0 0 #fff8; }
+        50% { box-shadow: 0 0 96px 40px #ffb300ee, 0 0 180px 80px #ff9800cc, 0 0 0 0 #fff8; }
+        100% { box-shadow: 0 0 64px 24px #ff9800cc, 0 0 120px 48px #ffb300cc, 0 0 0 0 #fff8; }
       }
   </style>
 </head>
@@ -25,22 +56,33 @@
     <div id="welcome-screen" style="position:fixed;z-index:10;top:0;left:0;width:100vw;height:100vh;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <canvas id="fireworks-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;z-index:1;"></canvas>
       <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;">
-        <h1 style="color:#fff;font-size:2.2em;text-shadow:0 2px 12px #306998,0 0 40px #fff;letter-spacing:2px;margin-bottom:18px;">Bienvenue au jeu snake de DAVID</h1>
-        <button id="welcome-start-btn" style="padding:18px 50px;font-size:1.5em;background:#ff9800;color:#fff;border:none;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px #0004;margin-bottom:18px;">Commencer</button>
-        <div id="countdown" style="color:#fff;font-size:2.5em;font-weight:bold;margin-top:10px;display:none;text-shadow:0 2px 12px #ff9800,0 0 40px #fff;"></div>
+        <h1 style="color:#fff;font-size:2.8em;text-shadow:0 2px 18px #ff9800,0 0 40px #fff;letter-spacing:2px;margin-bottom:18px;line-height:1.1;">
+  <span style="font-size:1.2em;vertical-align:middle;">🐍</span> Bienvenue au jeu snake de DAVID <span style="font-size:1.2em;vertical-align:middle;">🎉</span>
+</h1>
+  <button id="welcome-start-btn" style="padding:18px 50px;font-size:1.5em;background:#ff9800;color:#fff;border:none;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px #0004;margin-bottom:18px;">Démarrer le jeu</button>
+  <div id="countdown" style="color:#fff;font-size:2.5em;font-weight:bold;margin-top:10px;display:none;text-shadow:0 2px 12px #ff9800,0 0 40px #fff;"></div>
       </div>
     </div>
-    <div id="top-bar">
-      <button id="start-btn" style="padding:15px 40px;font-size:1.2em;background:#306998;color:#fff;border:none;border-radius:8px;cursor:pointer;">Démarrer le jeu</button>
-      <button id="mute-btn" style="padding:12px 25px;font-size:1em;background:#222;color:#fff;border:none;border-radius:8px;cursor:pointer;">🔊 Son</button>
-      <span id="highscore-label" style="font-size:1.1em;color:#306998;font-weight:bold;">Meilleur score : 0</span>
-    </div>
+
     <div id="game-container" style="position: relative; width: 900px; height: 900px; margin: auto; opacity:0.5; pointer-events:none;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; left: -90px; top: 50%; transform: translateY(-50%); width: 90px; height: 90px;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; right: -90px; top: 50%; transform: translateY(-50%) scaleX(-1); width: 90px; height: 90px;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; top: -90px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px;">
       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" alt="python" style="position: absolute; bottom: -90px; left: 50%; transform: translateX(-50%) scaleY(-1); width: 90px; height: 90px;">
-      <canvas id="game" width="900" height="900"></canvas>
+      <span class="fire-frame" style="position:relative;display:inline-block;">
+        <canvas id="game" width="900" height="900"></canvas>
+        <span class="fire-inner"></span>
+        <button id="big-start-btn" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;padding:32px 80px;font-size:2.2em;background:#ff9800;color:#fff;border:none;border-radius:20px;box-shadow:0 2px 16px #0008;cursor:pointer;display:none;">Démarrer le jeu</button>
+      </span>
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" style="display:none;position:fixed;z-index:20;top:0;left:0;width:100vw;height:100vh;background:rgba(20,0,0,0.92);backdrop-filter:blur(2px);align-items:center;justify-content:center;flex-direction:column;">
+      <div style="text-align:center;z-index:21;">
+        <div style="font-size:4em;margin-bottom:10px;">😢</div>
+  <div id="gameover-msg" style="color:#fff;font-size:2em;font-weight:bold;margin-bottom:18px;text-shadow:0 2px 12px #ff9800,0 0 40px #fff;">Game Over !</div>
+  <div id="highscore-label" style="font-size:1.1em;color:#ff9800;font-weight:bold;margin-bottom:18px;">Meilleur score : 0</div>
+        <button id="restart-btn" style="padding:16px 40px;font-size:1.3em;background:#ff9800;color:#fff;border:none;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px #0004;">Recommencer</button>
+      </div>
+    </div>
     </div>
   <script>
   // --- FEU D'ARTIFICE ---
@@ -119,11 +161,25 @@
         countdownDiv.textContent = 'Go!';
         setTimeout(()=>{
           welcomeScreen.style.display = 'none';
+          // Affiche le gros bouton démarrer dans le cadre du jeu
+          showBigStartBtn();
         }, 600);
         clearInterval(interval);
       }
     }, 900);
   });
+
+  // --- Affichage du gros bouton Démarrer dans le cadre du jeu après le feu d'artifice ---
+  const bigStartBtn = document.getElementById('big-start-btn');
+  function showBigStartBtn() {
+    bigStartBtn.style.display = 'block';
+    gameContainer.style.opacity = 1;
+    gameContainer.style.pointerEvents = 'auto';
+  }
+  bigStartBtn.onclick = function() {
+    bigStartBtn.style.display = 'none';
+    if (typeof startGame === 'function') startGame();
+  };
   </script>
   <!-- Sons distincts et libres -->
   <audio id="eat-sound" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12b1b7b6e2.mp3"></audio> <!-- pop -->
@@ -145,16 +201,30 @@
   const bgSound = document.getElementById('bg-sound');
   // Contrôle démarrage
   const startBtn = document.getElementById('start-btn');
-  const muteBtn = document.getElementById('mute-btn');
-  const highscoreLabel = document.getElementById('highscore-label');
+  // const muteBtn = document.getElementById('mute-btn');
+  // const highscoreLabel = document.getElementById('highscore-label');
   const gameContainer = document.getElementById('game-container');
   let muted = false;
   let highscore = localStorage.getItem('snake_highscore') ? parseInt(localStorage.getItem('snake_highscore')) : 0;
-  highscoreLabel.textContent = 'Meilleur score : ' + highscore;
+  document.querySelectorAll('#highscore-label').forEach(e => e.textContent = 'Meilleur score : ' + highscore);
+
+    // Image de serpent (python stylisé)
+    const snakeImg = new Image();
+    let snakeImgLoaded = false;
+    snakeImg.onload = () => { snakeImgLoaded = true; };
+    snakeImg.onerror = () => { snakeImgLoaded = false; };
+  // Image segment de serpent vue du dessus (libre de droits, adaptée snake)
+  snakeImg.src = 'https://raw.githubusercontent.com/mauriciopoppe/snake/master/assets/body.png';
 
     function drawSnake() {
-      ctx.fillStyle = '#0f0';
-      snake.forEach(part => ctx.fillRect(part.x, part.y, grid, grid));
+      snake.forEach(part => {
+        if (snakeImgLoaded) {
+          ctx.drawImage(snakeImg, part.x, part.y, grid, grid);
+        } else {
+          ctx.fillStyle = '#0f0';
+          ctx.fillRect(part.x, part.y, grid, grid);
+        }
+      });
     }
 
     function drawFood() {
@@ -202,30 +272,31 @@
         if (score > highscore) {
           highscore = score;
           localStorage.setItem('snake_highscore', highscore);
-          highscoreLabel.textContent = 'Meilleur score : ' + highscore;
+          document.querySelectorAll('#highscore-label').forEach(e => e.textContent = 'Meilleur score : ' + highscore);
         }
          // Vibration à la fin de la partie (si supporté)
          if (window.navigator && window.navigator.vibrate) {
            window.navigator.vibrate([200, 100, 200]);
          }
          setTimeout(() => {
-           let again = confirm('Game Over! Score: ' + score + '\nVoulez-vous rejouer ? (OK = Rejouer, Annuler = Quitter)');
-           if (again) {
-             // Réinitialiser le jeu
-             snake = [{x: 10 * grid, y: 15 * grid}];
-             dx = grid; dy = 0;
-             food = {x: 15 * grid, y: 15 * grid};
-             score = 0;
-             speed = 180;
-             ctx.clearRect(0, 0, 900, 900);
-             clearInterval(loopId);
-             loopId = setInterval(gameLoop, speed);
-             if (!muted && bgSound) { try { bgSound.currentTime = 0; bgSound.play(); } catch(e){} }
-           } else {
-             if (bgSound) bgSound.pause();
-             window.close();
-           }
+           // Affiche l'écran Game Over avec emoji et bouton
+           document.getElementById('gameover-screen').style.display = 'flex';
+           document.getElementById('gameover-msg').textContent = 'Game Over ! Score : ' + score;
          }, 100);
+  // Gestion du bouton recommencer (Game Over)
+  document.getElementById('restart-btn').onclick = function() {
+    document.getElementById('gameover-screen').style.display = 'none';
+    // Réinitialiser le jeu
+    snake = [{x: 10 * grid, y: 15 * grid}];
+    dx = grid; dy = 0;
+    food = {x: 15 * grid, y: 15 * grid};
+    score = 0;
+    speed = 180;
+    ctx.clearRect(0, 0, 900, 900);
+    clearInterval(loopId);
+    loopId = setInterval(gameLoop, speed);
+    if (!muted && bgSound) { try { bgSound.currentTime = 0; bgSound.play(); } catch(e){} }
+  };
         clearInterval(loopId);
         return;
       }
@@ -273,26 +344,29 @@
 
     // Démarrage du jeu après interaction utilisateur
     function startGame() {
+      // Attendre que l'image du serpent soit chargée avant de démarrer
+      if (!snakeImgLoaded && !snakeImg.complete) {
+        snakeImg.onload = () => startGame();
+        return;
+      }
       gameContainer.style.opacity = 1;
       gameContainer.style.pointerEvents = 'auto';
-      startBtn.style.display = 'none';
+      // On ne cache plus startBtn car il n'existe plus
       if (loopId) clearInterval(loopId);
+      // Réinitialiser le jeu
+      snake = [{x: 10 * grid, y: 15 * grid}];
+      dx = grid; dy = 0;
+      food = {x: 15 * grid, y: 15 * grid};
+      score = 0;
+      speed = 180;
+      ctx.clearRect(0, 0, 900, 900);
       loopId = setInterval(gameLoop, speed);
       if (!muted && bgSound) { try { bgSound.currentTime = 0; bgSound.volume = 0.2; bgSound.play(); } catch(e){} }
     }
     startBtn.addEventListener('click', startGame);
 
     // Mute/Unmute
-    muteBtn.addEventListener('click', function() {
-      muted = !muted;
-      if (muted) {
-        muteBtn.textContent = '🔇 Muet';
-        if (bgSound) bgSound.pause();
-      } else {
-        muteBtn.textContent = '🔊 Son';
-        if (startBtn.style.display === 'none' && bgSound) { try { bgSound.currentTime = 0; bgSound.play(); } catch(e){} }
-      }
-    });
+     // Suppression du bouton volume car le son ne fonctionne pas
   </script>
 </body>
 </html>
